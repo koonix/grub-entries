@@ -5,22 +5,6 @@
 # config
 grubcfg=/boot/grub/grub.cfg
 
-glyphs="
- artix arch void
- gentoo
- manjaro
- debian devuan
- kali
- buntu
- mint
- element
- fedora
- mac
- windows
- suse
- bsd
-"
-
 main()
 {
     if [ ! -r "$grubcfg" ]; then
@@ -28,7 +12,7 @@ main()
         exit 1
     fi
     case "$1" in
-        -g) add_glyph "$(get_entries)" ;;
+        -g) get_entries | add_glyph ;;
         *) get_entries ;;
     esac
 }
@@ -78,19 +62,25 @@ eof
 
 add_glyph()
 {
-    printf '%s\n' "$glyphs" | awk -v input="$1" '
-        {
-            split(input, entries, "\n+")
-            for (i in entries) {
-                os=entries[i]
-                for (j=2; j<=NF; j++) {
-                    if (match(tolower(os), $j)) {
-                        print $1" "os
-                    }
-                }
-            }
-        }
-    '
+    while IFS= read -r entry; do
+        case "$(echo "$entry" | tr A-Z a-z)" in
+            *artix*|*arch*|*void*) printf '' ;;
+            *debian*|*devuan*) printf '' ;;
+            *windows*|*react*) printf '' ;;
+            *manjaro*) printf '' ;;
+            *element*) printf '' ;;
+            *fedora*) printf '' ;;
+            *gentoo*) printf '' ;;
+            *buntu*) printf '' ;;
+            *suse*) printf '' ;;
+            *kali*) printf '' ;;
+            *mint*) printf '' ;;
+            *mac*) printf '' ;;
+            *bsd*) printf '' ;;
+            *) printf ? ;;
+        esac
+        printf ' %s\n' "$entry"
+    done
 }
 
 main "$@"
