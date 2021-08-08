@@ -1,0 +1,96 @@
+#!/bin/sh
+# list grub's top-level menu entries.
+# it's useful in combination with 'grub-reboot'.
+
+# config
+grubcfg=/boot/grub/grub.cfg
+
+glyphs="
+ artix arch void
+ gentoo
+ manjaro
+ debian devuan
+ kali
+ buntu
+ mint
+ element
+ fedora
+ mac
+ windows
+ suse
+ bsd
+"
+
+main()
+{
+    if [ ! -r "$grubcfg" ]; then
+        echo "grub-entries: Cannot read $grubcfg; Please run as root." >&2
+        exit 1
+    fi
+    case "$1" in
+        -g) add_glyph "$(get_entries)" ;;
+        *) get_entries ;;
+    esac
+}
+
+get_entries()
+{
+    cat << 'eof' | awk -f- "$grubcfg"
+
+    BEGIN { FS="" }
+
+    /^\s*submenu\s+/ {
+        submenu = 1
+    }
+
+    submenu {
+        for (i=1; i<=NF; i++) {
+            switch($i) {
+                case "{": brace++; break
+                case "}": brace--; break
+            }
+        }
+        if (brace) next
+        else submenu = 0
+    }
+
+    /^\s*menuentry\s+/ {
+        for (i=1; i<NF && $i!=" " && $i!="\t"; i++);
+        for (; i<NF && $i==" " || $i=="\t"; i++);
+        switch($i) {
+            case "'":
+            case "\"":
+                end1=$i
+                end2=$i
+                i++
+                break
+            default:
+                end1=" "
+                end2="\t"
+                break
+        }
+        for (; i<NF && $i!=end1 && $i!=end2; i++)
+            printf "%c", $i
+        printf "\n"
+    }
+eof
+}
+
+add_glyph()
+{
+    printf '%s\n' "$glyphs" | awk -v input="$1" '
+        {
+            split(input, entries, "\n+")
+            for (i in entries) {
+                os=entries[i]
+                for (j=2; j<=NF; j++) {
+                    if (match(tolower(os), $j)) {
+                        print $1" "os
+                    }
+                }
+            }
+        }
+    '
+}
+
+main "$@"
