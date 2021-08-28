@@ -19,7 +19,7 @@ main()
 
 get_entries()
 {
-    cat << 'eof' | awk -f- "$grubcfg"
+    awk -f- "$grubcfg" << 'eof'
 
     BEGIN { FS="" }
 
