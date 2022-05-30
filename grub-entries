@@ -54,7 +54,7 @@ get_entries()
                 break
         }
         for (; i<NF && $i!=end1 && $i!=end2; i++)
-            printf "%c", $i
+            printf "%s", $i
         printf "\n"
     }
 eof
